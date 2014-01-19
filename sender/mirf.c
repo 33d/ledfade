@@ -49,9 +49,9 @@ void mirf_init()
     mirf_CSN_hi;
 
 //#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__)
-    // Initialize external interrupt on port PD6 (PCINT22)
-    DDRB &= ~(1<<PD6);
-    PCMSK2 = (1<<PCINT22);
+    // Initialize external interrupt on port PD7 (PCINT23)
+    DDRD &= ~(1<<PD7);
+    PCMSK2 = (1<<PCINT23);
     PCICR  = (1<<PCIE2);
 //#endif // __AVR_ATmega168__    
 
