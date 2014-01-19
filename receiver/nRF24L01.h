@@ -95,8 +95,9 @@
 #define W_REGISTER    0x20
 #define REGISTER_MASK 0x1F
 #define R_RX_PAYLOAD  0x61
-#define W_TX_PAYLOAD  0xA0
 #define FLUSH_TX      0xE1
+#define W_TX_PAYLOAD  0xA0
+#define W_TX_PAYLOAD_NO_ACK  0xB0
 #define FLUSH_RX      0xE2
 #define REUSE_TX_PL   0xE3
 #define NOP           0xFF

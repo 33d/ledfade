@@ -177,7 +177,7 @@ void mirf_send(const uint8_t * value, uint8_t len)
     mirf_CSN_hi;                    // Pull up chip select
     
     mirf_CSN_lo;                    // Pull down chip select
-    spi_fast_shift( W_TX_PAYLOAD ); // Write cmd to write payload
+    spi_fast_shift( mirf_TX_CMD );  // Write cmd to write payload
     spi_transmit_sync(value,len);   // Write payload
     mirf_CSN_hi;                    // Pull up chip select
     
