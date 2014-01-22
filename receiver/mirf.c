@@ -48,13 +48,6 @@ void mirf_init()
     mirf_CE_lo;
     mirf_CSN_hi;
 
-//#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__)
-    // Initialize external interrupt on port PD7 (PCINT23)
-    DDRD &= ~(1<<PD7);
-    PCMSK2 = (1<<PCINT23);
-    PCICR  = (1<<PCIE2);
-//#endif // __AVR_ATmega168__    
-
     // Initialize spi module
     spi_init();
 }
@@ -90,25 +83,34 @@ void mirf_set_TADDR(uint8_t * adr)
     mirf_write_register(TX_ADDR, adr,5);
 }
 
-ISR(PCINT2_vect)
+void mirf_handle_interrupt()
 // Interrupt handler 
 {
+    uint8_t status;
+    // Read MiRF status 
+    mirf_CSN_lo;                                // Pull down chip select
+    status = spi_fast_shift(NOP);               // Read status register
+    mirf_CSN_hi;                                // Pull up chip select
+
     // If still in transmitting mode then finish transmission
-    if (PTX) {
-    
-        // Read MiRF status 
-        mirf_CSN_lo;                                // Pull down chip select
-        spi_fast_shift(NOP);                        // Read status register
-        mirf_CSN_hi;                                // Pull up chip select
+    if (status & (1<<TX_DS)) {
 
         mirf_CE_lo;                             // Deactivate transreceiver
         RX_POWERUP;                             // Power up in receiving mode
         mirf_CE_hi;                             // Listening for pakets
         PTX = 0;                                // Set to receiving mode
 
-        // Reset status register for further interaction
-        mirf_config_register(STATUS,(1<<TX_DS)|(1<<MAX_RT)); // Reset status register
     }
+
+    if (status & (1<<RX_DR)) {
+      uint8_t data[mirf_PAYLOAD];
+      mirf_get_data(data);
+      mirf_handle_rx(data);
+    }
+
+    // Reset status register for further interaction
+    mirf_config_register(STATUS,
+        (status & RX_DR) | (status & TX_DS) | (1<<MAX_RT)); // Reset status register
 }
 
 extern uint8_t mirf_data_ready() 

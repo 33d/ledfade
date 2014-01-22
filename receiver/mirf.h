@@ -34,7 +34,7 @@
 #define mirf_PAYLOAD    8
 // W_TX_PAYLOAD or W_TX_PAYLOAD_NO_ACK
 #define mirf_TX_CMD     W_TX_PAYLOAD_NO_ACK
-#define mirf_CONFIG     ( (1<<MASK_RX_DR) | (1<<EN_CRC) | (0<<CRCO) )
+#define mirf_CONFIG     ( (1<<EN_CRC) | (0<<CRCO) )
 
 // Pin definitions for chip select and chip enabled of the MiRF module
 #define CE  PB0
@@ -54,7 +54,9 @@ extern void mirf_set_RADDR(uint8_t * adr);
 extern void mirf_set_TADDR(uint8_t * adr);
 extern uint8_t mirf_data_ready();
 extern void mirf_get_data(uint8_t * data);
-
+extern void mirf_handle_interrupt();
+// implement this one yourself
+extern void mirf_handle_rx(uint8_t data[mirf_PAYLOAD]);
 
 // Public extended functions
 extern void mirf_config_register(uint8_t reg, uint8_t value);
