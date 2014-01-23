@@ -110,7 +110,7 @@ void mirf_handle_interrupt()
 
     // Reset status register for further interaction
     mirf_config_register(STATUS,
-        (status & RX_DR) | (status & TX_DS) | (1<<MAX_RT)); // Reset status register
+        (status & (1<<RX_DR | 1<<TX_DS)) | (1<<MAX_RT)); // Reset status register
 }
 
 extern uint8_t mirf_data_ready() 
