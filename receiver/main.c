@@ -13,6 +13,7 @@
 
 typedef struct {
   unsigned int nrf_interrupt : 1;
+  unsigned int flash_end : 1;
 } Events;
 #define event(e) ((volatile Events*) &GPIOR0)->e
 #define check_event(e, action) if (event(e)) { event(e) = 0; action; }
@@ -23,10 +24,23 @@ void mirf_handle_rx(uint8_t buf_read[mirf_PAYLOAD]) {
   for (const uint8_t* ch = buf_read; ch < buf_read + mirf_PAYLOAD; ch++)
     printf("%02X", *ch);
   putchar('\n');
+
+  PORTC |= _BV(PORTC5);
+  TCNT1 = 0;
+  TCCR1B |= _BV(CS12) | _BV(CS10); // Start timer
+}
+
+void do_flash_end() {
+  PORTC &= ~_BV(PORTC5);
+  TCCR1B = 0;
 }
 
 ISR(INT0_vect) {
   event(nrf_interrupt) = 1;
+}
+
+ISR(TIMER1_COMPA_vect) {
+  event(flash_end) = 1;
 }
 
 int main(void) {
@@ -36,6 +50,15 @@ int main(void) {
   // nRF interrupt on INT0 aka D2 (INT1 is shared with a PWM output)
   DDRD &= ~_BV(PORTD2);
   EIMSK |= _BV(INT0); 
+
+  // Light blinking timer
+  DDRC |= _BV(DDC5);
+  TCCR1A = 0;
+  TIMSK1 = _BV(OCIE1A);
+  TCCR1B = 0; // Don't start the timer yet
+  TCCR1C = 0;
+  TCNT1 = 0;
+  OCR1A = F_CPU / 1024 * 0.05;
 
   // Initialize AVR for use with mirf
   mirf_init();
@@ -53,6 +76,7 @@ int main(void) {
       cli();
     }
     check_event(nrf_interrupt, mirf_handle_interrupt());
+    check_event(flash_end, do_flash_end());
   }
 }
 
