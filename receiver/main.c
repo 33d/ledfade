@@ -35,12 +35,14 @@ void do_flash_end() {
   TCCR1B = 0;
 }
 
-ISR(INT0_vect) {
+ISR(INT0_vect, ISR_NAKED) {
   event(nrf_interrupt) = 1;
+  reti();
 }
 
-ISR(TIMER1_COMPA_vect) {
+ISR(TIMER1_COMPA_vect, ISR_NAKED) {
   event(flash_end) = 1;
+  reti();
 }
 
 int main(void) {
