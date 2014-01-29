@@ -31,20 +31,19 @@ int pin_putchar(char c, FILE* stream) {
       "  dec %[delay] \n\t"
       "  brne delay_start_bit \n\t"
       "loop_data_bit: \n\t"
-      "  mov %[temp], %[data] \n\t"  /* 1 */
-      "  andi %[temp], 1 \n\t"       /* 1 */
-      "  brne handle_1 \n\t"         /* 1  2 */
+      "  lsr %[data] \n\t"           /* 1 */
+      "  brcs handle_0 \n\t"         /* 1  2 */
       "  nop \n\t"                   /* 1 */
       "  cbi %[port], 0 \n\t"        /* 1 */
       "  rjmp next_data_bit \n\t"    /* 2 */
-      "handle_1: \n\t"
+      "handle_0: \n\t"
       "  sbi %[port], 0 \n\t"        /*    1 */
       "  rjmp . \n\t"                /*    2 */
       "next_data_bit: \n\t"
       "  rjmp . \n\t"                /* 2 */
       "  rjmp . \n\t"                /* 2 */
+      "  rjmp . \n\t"                /* 2 */
       "  nop \n\t"                   /* 1 */
-      "  lsr %[data] \n\t"           /* 1 */
       "  dec %[count] \n\t"          /* 1 */
       "  brne loop_data_bit \n\t"    /* 2 */
                                    /* = 16 cycles */
@@ -57,8 +56,7 @@ int pin_putchar(char c, FILE* stream) {
       "delay_stop_bit: \n\t"
       "  dec %[delay] \n\t"
       "  brne delay_stop_bit \n\t"
-    : [temp] "=&d" (temp),
-      [delay] "=&r" (delay),
+    : [delay] "=&r" (delay),
       [count] "=&r" (count)
     : [port] "I" (_SFR_IO_ADDR(PORTC)), 
       [data] "r" (c)
