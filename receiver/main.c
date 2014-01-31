@@ -25,13 +25,13 @@ void mirf_handle_rx(uint8_t buf_read[mirf_PAYLOAD]) {
     printf("%02X", *ch);
   putchar('\n');
 
-  PORTC |= _BV(PORTC5);
+  PORTB |= _BV(PORTB5);
   TCNT1 = 0;
   TCCR1B |= _BV(CS12) | _BV(CS10); // Start timer
 }
 
 void do_flash_end() {
-  PORTC &= ~_BV(PORTC5);
+  PORTB &= ~_BV(PORTB5);
   TCCR1B = 0;
 }
 
@@ -54,7 +54,7 @@ int main(void) {
   EIMSK |= _BV(INT0); 
 
   // Light blinking timer
-  DDRC |= _BV(DDC5);
+  DDRB |= _BV(DDB5);
   TCCR1A = 0;
   TIMSK1 = _BV(OCIE1A);
   TCCR1B = 0; // Don't start the timer yet
