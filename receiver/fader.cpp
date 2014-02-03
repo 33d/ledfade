@@ -40,8 +40,8 @@ void Interpolator::init(const int16_t* steps, uint8_t min, uint8_t max) {
 uint8_t Interpolator::next() {
   error -= delta;
   if (error < 0) {
-    curr += 1;
-    error += delta;
+    curr += dir;
+    error += *steps;
   }
   return curr;
 }

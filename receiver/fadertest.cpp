@@ -3,7 +3,9 @@
 #include <stdint.h>
 #include "fader.h"
 
-#define CU_ASSERT_NEARLY(n, e) (CU_ASSERT((e) >= (n)-1 || (e) <= (n)+1))
+#define CU_ASSERT_NEARLY(n, e) \
+  CU_ASSERT_TRUE((e) >= ((n) == 0 ? 0 : (n) - 1)); \
+  CU_ASSERT_TRUE((e) <= ((n) == 255 ? 255 : (n) + 1));
 
 void testFaderSetColor() {
   int16_t count = 300;
@@ -36,9 +38,9 @@ void testFaderSetColor() {
   f.start(&count, l3);
   f.fade();
 
-  CU_ASSERT_NEARLY(128, f.led[0]);
-  CU_ASSERT_NEARLY(255, f.led[1]);
-  CU_ASSERT_NEARLY(192, f.led[2]);
+  CU_ASSERT_NEARLY(127, f.led[0]);
+  CU_ASSERT_NEARLY(254, f.led[1]);
+  CU_ASSERT_NEARLY(191, f.led[2]);
 
   for (int i = 0; i < count - 2; i++)
     f.fade();
