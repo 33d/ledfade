@@ -27,6 +27,10 @@
 #ifndef _MIRF_H_
 #define _MIRF_H_
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <avr/io.h>
 
 // Mirf settings
@@ -62,5 +66,9 @@ extern void mirf_handle_rx(uint8_t data[mirf_PAYLOAD]);
 extern void mirf_config_register(uint8_t reg, uint8_t value);
 extern void mirf_read_register(uint8_t reg, uint8_t * value, uint8_t len);
 extern void mirf_write_register(uint8_t reg, uint8_t * value, uint8_t len);
+
+#if defined(__cplusplus)
+} // extern
+#endif
 
 #endif /* _MIRF_H_ */

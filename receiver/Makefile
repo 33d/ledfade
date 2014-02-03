@@ -1,9 +1,9 @@
 PROJECT	       = nrf-receiver
 
 PRG            = $(PROJECT)
-OBJECTS        = 
+OBJECTS        = fader
 AVR_OBJECTS    = main mirf spi serial
-TEST_OBJECTS   = 
+TEST_OBJECTS   = fadertest
 
 ARDUINO_HOME  ?= /opt/arduino-1.0.5
 
@@ -18,9 +18,11 @@ OPTIMIZE       = -O2
 
 DEFS           = -DF_CPU=16000000L
 LIBS           = 
-TEST_LIBS      = -lcppunit
+TEST_LIBS      = -lcunit
 
 # You should not have to change anything below here.
+
+CPPFLAGS        += -g
 
 AVRCC          = avr-gcc
 AVRCPP         = avr-g++
