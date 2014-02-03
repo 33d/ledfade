@@ -44,7 +44,7 @@ typedef struct {
 /*
 Packet format:
   Sequence  R    G    B  Duration  TimeToNext
-duration(seconds) =20sec/256*duration(value)
+Duration = duration(seconds) / 16
 */
 
 void mirf_handle_rx(uint8_t buf_read[mirf_PAYLOAD]) {
@@ -53,10 +53,10 @@ void mirf_handle_rx(uint8_t buf_read[mirf_PAYLOAD]) {
     printf("%02X", *ch);
   putchar('\n');
 
-  fade_duration = ((int16_t) buf_read[0]) * (
-    (1.0 / 256)    // duration in seconds
-    *
-    (PRESCALER * 256.0 / F_CPU) // seconds per overflow
+  fade_duration =  (
+    (F_CPU / PRESCALER / 256) // overflows per second
+    * ((int16_t) buf_read[0])
+    / 16
   );
   fader.start(&fade_duration, buf_read + 1);
   // enable the timer0 overflow interrupt, which times the fading
@@ -81,7 +81,7 @@ void update_values() {
 }
 
 static void handle_timer_overflow() {
-  static uint16_t counter = 0; // the current fade or delay overflow count
+  static int16_t counter = 0; // the current fade or delay overflow count
 
   PINB |= _BV(PORTB5);
 
