@@ -10,9 +10,23 @@
 #define SERIAL_U2X 1
 #include "serial.h"
 
+// nicked from
+// http://forum.htsoft.com/all/showflat.php/Cat/0/Number/122342/page/0/fpart/1/vc/1
+uint8_t rand255() {
+    static uint8_t x = 1;
+    if (x & 0x80)
+        x = (x<<1) ^ 0x1d;
+    else
+        x = x << 1;
+    return x; 
+}
+
 int main(void) {
-  const uint8_t buf_write[] = { 0x01, 0x03, 0x05, 0x07, 0x09, 0x0b, 0x0e, 0x10 };
-  uint8_t buf_read[mirf_PAYLOAD];
+  uint8_t buf_write[6];
+  uint8_t sequence = 0;
+
+  buf_write[4] = 2 * 16; // Fade duration * 1/16sec
+  buf_write[5] = 10 * 16; // Time to next - TODO
 
   serial_init();
 
@@ -26,17 +40,17 @@ int main(void) {
   mirf_config();
 
   while(1) {
-    // Test communication
+    buf_write[0] = sequence++;
+    buf_write[1] = rand255();
+    buf_write[2] = rand255();
+    buf_write[3] = rand255();
     printf("Sending ");
+    // the sizeof is wrong but it won't matter here
+    for (uint8_t* n = buf_write; n < buf_write + sizeof(buf_write); ++n)
+      printf("%02X", *n);
     mirf_send(buf_write, sizeof(buf_write));
-#if 0
-    printf("Data ready: %d ", mirf_data_ready());
-    mirf_get_data(buf_read);
-    for (const uint8_t* ch = buf_read; ch < buf_read + sizeof(buf_read); ch++)
-      printf("%02X", *ch);
-#endif
     putchar('\n');
-    _delay_ms(1000);
+    _delay_ms(6000);
   }
 }
 
