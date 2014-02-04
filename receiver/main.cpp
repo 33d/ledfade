@@ -55,7 +55,7 @@ void mirf_handle_rx(uint8_t buf_read[mirf_PAYLOAD]) {
 
   fade_duration =  (
     (F_CPU / PRESCALER / 256) // overflows per second
-    * ((int16_t) buf_read[0])
+    * ((int16_t) buf_read[4])
     / 16
   );
   fader.start(&fade_duration, buf_read + 1);
