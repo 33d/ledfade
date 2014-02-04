@@ -33,7 +33,7 @@ void Interpolator::init(const int16_t* steps, uint8_t min, uint8_t max) {
     dir = -1;
     delta = min - max;
   }
-  error = *steps / 2;
+  error = *(this->steps) / 2;
   curr = min;
 }
 
@@ -41,7 +41,7 @@ uint8_t Interpolator::next() {
   error -= delta;
   if (error < 0) {
     curr += dir;
-    error += *steps;
+    error += *steps + 1;
   }
   return curr;
 }

@@ -25,13 +25,22 @@ void testFaderSetColor() {
   CU_ASSERT_NEARLY(1, f.led[1]);
   CU_ASSERT_NEARLY(1, f.led[2]);
 
-  // Run the interpolation almost to the end, confirm the target
-  for (int i = 0; i < count - 2; i++)
-    f.fade();
+  {
+    int i = 0;
+    // Run the interpolation half way
+    for (; i < count / 2; i++)
+      f.fade();
+    CU_ASSERT_NEARLY( 64, f.led[0]);
+    CU_ASSERT_NEARLY(128, f.led[1]);
+    CU_ASSERT_NEARLY( 96, f.led[2]);
 
-  CU_ASSERT_NEARLY(128, f.led[0]);
-  CU_ASSERT_NEARLY(255, f.led[1]);
-  CU_ASSERT_NEARLY(192, f.led[2]);
+    // Run the interpolation to the end
+    for (; i < count; i++)
+      f.fade();
+    CU_ASSERT_NEARLY(128, f.led[0]);
+    CU_ASSERT_NEARLY(255, f.led[1]);
+    CU_ASSERT_NEARLY(192, f.led[2]);
+  }
 
   // See if it goes back down again
   static const uint8_t l3[] = { 32, 32, 32 };
