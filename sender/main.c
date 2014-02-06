@@ -25,7 +25,8 @@ int main(void) {
   uint8_t buf_write[6];
   uint8_t sequence = 0;
 
-  buf_write[4] = 2 * 16; // Fade duration * 1/16sec
+  const uint8_t duration = 2*16; // Fade duration * 1/16 sec
+  buf_write[4] = duration;
   buf_write[5] = 10 * 16; // Time to next - TODO
 
   serial_init();
@@ -44,6 +45,8 @@ int main(void) {
     buf_write[1] = rand255();
     buf_write[2] = rand255();
     buf_write[3] = rand255();
+    // Occasionally change the colour immediately
+    buf_write[4] = (rand255() & 0x03) == 0x03 ? 0 : duration;
     printf("Sending ");
     // the sizeof is wrong but it won't matter here
     for (uint8_t* n = buf_write; n < buf_write + sizeof(buf_write); ++n)

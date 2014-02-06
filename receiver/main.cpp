@@ -32,6 +32,7 @@
 Fader fader;
 // How long (in timer0 overflows) we're fading for
 int16_t fade_duration;
+int16_t counter = 0; // the current fade or delay overflow count
 
 typedef struct {
   unsigned int nrf_interrupt : 1;
@@ -47,20 +48,34 @@ Packet format:
 Duration = duration(seconds) / 16
 */
 
+static void update_leds() {
+ OCR_RED = fader.led[0];
+ OCR_GREEN = fader.led[1];
+ OCR_BLUE = fader.led[2];
+}
+
 void mirf_handle_rx(uint8_t buf_read[mirf_PAYLOAD]) {
   printf("Read data ");
   for (const uint8_t* ch = buf_read; ch < buf_read + mirf_PAYLOAD; ch++)
     printf("%02X", *ch);
   putchar('\n');
 
-  fade_duration =  (
-    (F_CPU / PRESCALER / 256) // overflows per second
-    * ((int16_t) buf_read[4])
-    / 16
-  );
-  fader.start(&fade_duration, buf_read + 1);
-  // enable the timer0 overflow interrupt, which times the fading
-  TIMSK0 |= _BV(TOIE0);
+  if (buf_read[4] == 0) {
+    // Change immediately
+    counter = 0;
+    for (uint8_t i = 0; i < 3; i++)
+      fader.led[i] = buf_read[i+1];
+    update_leds();
+  } else {
+    fade_duration =  (
+      (F_CPU / PRESCALER / 256) // overflows per second
+      * ((int16_t) buf_read[4])
+      / 16
+    );
+    fader.start(&fade_duration, buf_read + 1);
+    // enable the timer0 overflow interrupt, which times the fading
+    TIMSK0 |= _BV(TOIE0);
+  }
 }
 
 ISR(INT0_vect, ISR_NAKED) {
@@ -73,16 +88,7 @@ ISR(TIMER0_OVF_vect, ISR_NAKED) {
   reti();
 }
 
-void update_values() {
-    fader.fade();
-    OCR_RED = fader.led[0];
-    OCR_GREEN = fader.led[1];
-    OCR_BLUE = fader.led[2];
-}
-
 static void handle_timer_overflow() {
-  static int16_t counter = 0; // the current fade or delay overflow count
-
   PINB |= _BV(PORTB5);
 
   ++counter;
@@ -91,8 +97,10 @@ static void handle_timer_overflow() {
     // turn off the timer0 overflow interrupt, so this doesn't get called
     TIMSK0 &= ~_BV(TOIE0);
     counter = 0;
-  } else
-    update_values();
+  } else {
+    fader.fade();
+    update_leds();
+  }
 }
 
 int main(void) {
@@ -140,8 +148,6 @@ int main(void) {
   // Start timers
   TCCR0B |= PRESCALER_CS;
   TCCR2B |= PRESCALER_CS;
-
-  update_values();
 
   while(1) {
     if (!more_events) {
