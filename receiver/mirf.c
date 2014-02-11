@@ -69,6 +69,11 @@ void mirf_config()
     mirf_CE_hi;     // Listening for pakets
 }
 
+void mirf_poweroff()
+{
+    mirf_config_register(CONFIG, (0<<PWR_UP) | (1<<PRIM_RX));
+}
+
 void mirf_set_RADDR(uint8_t * adr) 
 // Sets the receiving address
 {

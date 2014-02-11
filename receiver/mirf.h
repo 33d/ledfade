@@ -53,6 +53,7 @@ extern "C" {
 // Public standart functions
 extern void mirf_init();
 extern void mirf_config();
+extern void mirf_poweroff();
 extern void mirf_send(const uint8_t * value, uint8_t len);
 extern void mirf_set_RADDR(uint8_t * adr);
 extern void mirf_set_TADDR(uint8_t * adr);

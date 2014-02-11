@@ -33,6 +33,9 @@ Fader fader;
 // How long (in timer0 overflows) we're fading for
 int16_t fade_duration;
 int16_t counter = 0; // the current fade or delay overflow count
+// If we get no signal for this many overflows, shut down.  16s is the
+//  longest delay.
+#define shutdown_delay (17 * (F_CPU / 256 / PRESCALER))
 
 typedef struct {
   unsigned int nrf_interrupt : 1;
@@ -41,6 +44,28 @@ typedef struct {
 #define event(e) ((volatile Events*) &GPIOR0)->e
 #define check_event(e, action) if (event(e)) { event(e) = 0; action; }
 #define more_events (GPIOR0 != 0)
+
+static void power_off() {
+  cli();
+  puts("Power off");
+  mirf_poweroff();
+  SMCR = (0<<SM2) | (1<<SM1) | (0<<SM0) | (1<<SE);  // power down
+#if defined(BODS)
+  // Turn off brownout detection
+  MCUCR |= (1<<BODS) | (1<<BODSE);
+  MCUCR |= (1<<BODS);
+  MCUCR &= ~(1<<BODSE);
+#endif
+  // All ports inputs, all pull-ups on
+  DDRB = DDRC = DDRD = 0;
+  PORTB = PORTC = PORTD = ~0;
+  // no pull-up on the LED pins, or it keeps glowing
+  PORT_RED &= ~_BV(WIRE_RED);
+  PORT_GREEN &= ~_BV(WIRE_GREEN);
+  PORT_BLUE &= ~_BV(WIRE_BLUE);
+  PORTB &= ~_BV(PORTB5);
+  sleep_cpu(); 
+}
 
 /*
 Packet format:
@@ -74,7 +99,8 @@ void mirf_handle_rx(uint8_t buf_read[mirf_PAYLOAD]) {
     );
     fader.start(&fade_duration, buf_read + 1);
     // enable the timer0 overflow interrupt, which times the fading
-    TIMSK0 |= _BV(TOIE0);
+    //TIMSK0 |= _BV(TOIE0);
+    counter = 0;
   }
 }
 
@@ -92,15 +118,14 @@ static void handle_timer_overflow() {
   PINB |= _BV(PORTB5);
 
   ++counter;
-  if (counter > fade_duration) {
-    puts("Stopping fading");
-    // turn off the timer0 overflow interrupt, so this doesn't get called
-    TIMSK0 &= ~_BV(TOIE0);
-    counter = 0;
-  } else {
+  if (counter < fade_duration) {
     fader.fade();
     update_leds();
   }
+
+  if (counter > shutdown_delay) {
+    power_off();
+  };
 }
 
 int main(void) {
