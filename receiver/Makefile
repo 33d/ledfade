@@ -16,7 +16,7 @@ UPLOAD_PORT   ?= /dev/ttyUSB0
 MCU_TARGET    ?= atmega328p
 OPTIMIZE       = -O2
 
-DEFS           = -DF_CPU=16000000L
+DEFS           = -DF_CPU=16000000L -D__STDC_LIMIT_MACROS
 LIBS           = 
 TEST_LIBS      = -lcunit
 

@@ -24,10 +24,11 @@ uint8_t rand255() {
 int main(void) {
   uint8_t buf_write[6];
   uint8_t sequence = 0;
+  const double delay = 6000; // in milliseconds
 
   const uint8_t duration = 2*16; // Fade duration * 1/16 sec
   buf_write[4] = duration;
-  buf_write[5] = 10 * 16; // Time to next - TODO
+  buf_write[5] = delay*16/1000 - 1; // Time to next
 
   serial_init();
 
@@ -53,7 +54,7 @@ int main(void) {
       printf("%02X", *n);
     mirf_send(buf_write, sizeof(buf_write));
     putchar('\n');
-    _delay_ms(6000);
+    _delay_ms(delay);
   }
 }
 

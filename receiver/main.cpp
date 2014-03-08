@@ -32,10 +32,11 @@
 Fader fader;
 // How long (in timer0 overflows) we're fading for
 int16_t fade_duration;
-int16_t counter = 0; // the current fade or delay overflow count
+uint16_t counter = 0; // the current fade or delay overflow count
 // If we get no signal for this many overflows, shut down.  16s is the
 //  longest delay.
 #define shutdown_delay (17 * (F_CPU / 256 / PRESCALER))
+uint16_t radio_poweron = 0;
 
 typedef struct {
   unsigned int nrf_interrupt : 1;
@@ -102,6 +103,24 @@ void mirf_handle_rx(uint8_t buf_read[mirf_PAYLOAD]) {
     //TIMSK0 |= _BV(TOIE0);
     counter = 0;
   }
+
+  // Set when the radio should turn on again.  It needs about 5ms to get from
+  // power down to RX mode.
+  // Don't bother if it's less than 10 ms or 1 overflow
+  if (buf_read[5] == 0 // 1 = 62.5ms
+      || buf_read[5] < (uint8_t) (16.0 / (F_CPU / PRESCALER / 256) + 1))
+    radio_poweron = 0;
+  else {
+    radio_poweron = (
+      (uint16_t) (((float) F_CPU / PRESCALER / 256) // overflows per second
+      / 16)
+      * 
+      buf_read[5]
+    );
+    PORTB &= ~_BV(PORTB5);
+    printf("Waking up in %d overflows\n", radio_poweron);
+    mirf_poweroff();
+  }
 }
 
 ISR(INT0_vect, ISR_NAKED) {
@@ -115,12 +134,17 @@ ISR(TIMER0_OVF_vect, ISR_NAKED) {
 }
 
 static void handle_timer_overflow() {
-  PINB |= _BV(PORTB5);
-
   ++counter;
   if (counter < fade_duration) {
     fader.fade();
     update_leds();
+  }
+
+  if (counter > radio_poweron) {
+    printf("Power on\n");
+    PORTB |= _BV(PORTB5);
+    mirf_config(); // probably overkill
+    radio_poweron = INT16_MAX;
   }
 
   if (counter > shutdown_delay) {
