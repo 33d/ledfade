@@ -1,6 +1,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
+#include <avr/power.h>
+#include <avr/wdt.h>
 #include <util/delay.h>
 #include "mirf.h"
 #include "fader.h"
@@ -50,21 +52,29 @@ static void power_off() {
   cli();
   puts("Power off");
   mirf_poweroff();
-  SMCR = (0<<SM2) | (1<<SM1) | (0<<SM0) | (1<<SE);  // power down
-#if defined(BODS)
-  // Turn off brownout detection
-  MCUCR |= (1<<BODS) | (1<<BODSE);
-  MCUCR |= (1<<BODS);
-  MCUCR &= ~(1<<BODSE);
-#endif
-  // All ports inputs, all pull-ups on
-  DDRB = DDRC = DDRD = 0;
+  wdt_disable();
+  ADCSRA = (1<<ADEN);
+  // Disable IRQ, pull it high
+  EIMSK &= ~_BV(INT0);  // worth 200 uA!
+  // All ports outputs, all values high
+  DDRB = DDRC = DDRD = 1;
   PORTB = PORTC = PORTD = ~0;
-  // no pull-up on the LED pins, or it keeps glowing
+  // except the LED pins, or it keeps glowing
   PORT_RED &= ~_BV(WIRE_RED);
   PORT_GREEN &= ~_BV(WIRE_GREEN);
   PORT_BLUE &= ~_BV(WIRE_BLUE);
   PORTB &= ~_BV(PORTB5);
+  // Make the IRQ line an input, since the chip holds it at 3.3V
+  DDRD &= ~_BV(DDD2);
+  PORTD &= ~_BV(PORTD2);
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  sleep_enable();
+  power_all_disable();
+#if defined(BODS)
+  // Turn off brownout detection
+  MCUCR |= (1<<BODS) | (1<<BODSE);
+  MCUCR |= (1<<BODS);
+#endif
   sleep_cpu(); 
 }
 
