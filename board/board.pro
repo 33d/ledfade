@@ -1,4 +1,4 @@
-update=Sun 23 Mar 2014 19:24:58 CST
+update=Tue 25 Mar 2014 21:38:28 CST
 version=1
 last_client=eeschema
 [cvpcb]
@@ -102,3 +102,4 @@ LibName29=contrib
 LibName30=valves
 LibName31=nrf24l01+module
 LibName32=xr1151
+LibName33=3led
