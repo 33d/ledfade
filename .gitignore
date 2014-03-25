@@ -7,4 +7,5 @@
 *.srec
 *.swp
 receiver/test
+board/*.bak
 
