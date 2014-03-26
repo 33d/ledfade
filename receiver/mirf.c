@@ -44,7 +44,8 @@ void mirf_init()
 // Should be called in the early initializing phase at startup.
 {
     // Define CSN and CE as Output and set them to default
-    DDRB |= ((1<<CSN)|(1<<CE));
+    DDRB |= (1<<CE);
+    DDRC |= (1<<CSN);
     mirf_CE_lo;
     mirf_CSN_hi;
 

@@ -42,11 +42,11 @@ extern "C" {
 
 // Pin definitions for chip select and chip enabled of the MiRF module
 #define CE  PB0
-#define CSN PB1
+#define CSN PC2
 
 // Definitions for selecting and enabling MiRF module
-#define mirf_CSN_hi     PORTB |=  (1<<CSN);
-#define mirf_CSN_lo     PORTB &= ~(1<<CSN);
+#define mirf_CSN_hi     PORTC |=  (1<<CSN);
+#define mirf_CSN_lo     PORTC &= ~(1<<CSN);
 #define mirf_CE_hi      PORTB |=  (1<<CE);
 #define mirf_CE_lo      PORTB &= ~(1<<CE);
 
