@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Thu 27 Mar 2014 20:33:20 CST
+EESchema Schematic File Version 2  date Thu 27 Mar 2014 20:42:43 CST
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -48,6 +48,18 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
+Connection ~ 2350 4450
+NoConn ~ 4600 6750
+NoConn ~ 4600 6350
+NoConn ~ 4600 5800
+NoConn ~ 4600 5700
+NoConn ~ 4600 5600
+NoConn ~ 4600 5400
+NoConn ~ 4600 5150
+NoConn ~ 4600 5050
+NoConn ~ 2700 5900
+NoConn ~ 2700 5800
+NoConn ~ 2700 5050
 Connection ~ 1700 2900
 $Comp
 L PWR_FLAG #FLG01
